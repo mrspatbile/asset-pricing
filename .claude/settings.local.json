@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "Bash(rm /Users/mrspatbile/Documents/coding/asset-pricing/setup.py)"
+    ],
+    "additionalDirectories": [
+      "/Users/mrspatbile/Documents/coding/asset-pricing"
+    ]
+  }
+}
