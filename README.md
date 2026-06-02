@@ -15,12 +15,12 @@ These notebooks are **illustrative and educational**. They demonstrate concepts 
 ## Structure
 
 ```
-asset-pricing/
-├── 01_yield_curves/
+notebooks/
+├── 📁 01_yield_curves/
 │   ├── 01_nss_ecb.ipynb            # Nelson-Siegel-Svensson curve fitting (ECB data)
 │   └── 02_bootstrapping_ois.ipynb  # OIS curve bootstrapping
 │
-├── 02_instruments/
+├── 📁 02_instruments/
 │   ├── 01_bonds.ipynb              # Bond pricing and duration
 │   ├── 02_swaps.ipynb              # Interest rate swaps
 │   ├── 03_fx_forwards.ipynb        # FX forwards and covered interest parity
@@ -32,7 +32,7 @@ asset-pricing/
 │   ├── 09_callable_bond.ipynb      # Callable bond pricing
 │   └── 10_exotic_equity_derivatives.ipynb  # Exotic equity derivatives
 │
-├── 03_simulations/
+├── 📁 03_simulations/
 │   ├── 01_mc_rate_paths.ipynb      # Monte Carlo interest rate paths
 │   ├── 02_mc_bond_swap_pricing.ipynb
 │   ├── 03_mc_callable_bonds.ipynb
@@ -45,15 +45,14 @@ asset-pricing/
 │   ├── 10_mva.ipynb                # Margin Valuation Adjustment
 │   └── 11_xva_aggregation.ipynb    # XVA aggregation
 │
-├── 04_financial_theory/
+├── 📁 04_financial_theory/
 │   ├── basic single period .ipynb  # Single-period model, state prices, arbitrage
 │   ├── Vries_derivatives-pricing.ipynb  # Derivatives pricing fundamentals
-│   └── timeseries/
+│   └── 📁 timeseries/
 │       ├── ts_finance.ipynb            # Financial time series analysis
 │       ├── ts_garch_risk_management.ipynb  # GARCH models for risk
 │       └── ts_var_xgboost.ipynb        # VaR with XGBoost
-│
-└── pyproject.toml
+
 ```
 
 ---
@@ -63,8 +62,23 @@ asset-pricing/
 ### External packages
 All standard packages (`numpy`, `pandas`, `scipy`, `matplotlib`, `statsmodels`, `QuantLib`, etc.) are declared in [pyproject.toml](pyproject.toml).
 
+### `nb_utils` — local utilities
+`nb_utils/` provides shared notebook setup (`base()`, `asset_pricing()`) and the date-keyed data cache. Installed automatically with `pip install .`.
+
 ### `quant_risk` — internal engine
-Many notebooks import `quant_risk`, which comes from the [`quant-risk-engine`](https://github.com/mrspatbile/quant-risk-engine) repository. See the [Runbook](RUNBOOK.md) for how to install it.
+All notebooks import `quant_risk`, which comes from the [`quant-risk-engine`](https://github.com/mrspatbile/quant-risk-engine) repository. See the [Runbook](RUNBOOK.md) for how to install it.
+
+---
+
+## Data
+
+Notebooks load OIS and NSS curves from a local date-keyed cache (`data/processed/`). Data files are gitignored — populate the cache before running notebooks:
+
+```bash
+python scripts/build_dataset.py                        # today's data
+python scripts/build_dataset.py --date 2025-12-31 --pin  # historical + pin
+python scripts/build_dataset.py --list                 # show cached dates
+```
 
 ---
 
@@ -78,5 +92,10 @@ source .venv/bin/activate
 pip install .
 # To use the local quant-risk-engine instead of GitHub:
 # pip install . --no-deps && pip install -e ../quant-risk-engine
+python scripts/build_dataset.py
 jupyter lab
+```
+
+```bash
+pytest tests/
 ```
