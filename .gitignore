@@ -12,6 +12,8 @@ dist/
 # Data — never commit raw or processed data
 *.parquet
 *.csv
+data/processed/nss_params_*.json
+# manifest.json is intentionally tracked (records available dates)
 
 # Notebooks
 .ipynb_checkpoints/

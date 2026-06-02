@@ -1,5 +1,3 @@
-# src/quant_risk/setup.py
-
 def base():
     import numpy as np
     import pandas as pd
@@ -24,31 +22,66 @@ def base():
         'grid.linewidth': 0.6,
     })
 
-    print("base loaded")
     return np, pd, plt
 
 
-def asset_pricing():
+def asset_pricing(date: str = None):
+    """
+    Load OIS and NSS curves for the given date.
+
+    Parameters
+    ----------
+    date : str, optional
+        ISO date string, e.g. '2025-12-31'. Defaults to today.
+        - Cache hit  → loaded from data/processed/ instantly.
+        - Cache miss → fetched live from ECB, saved to cache,
+                       oldest unpinned entry evicted if cache is full.
+
+    Returns
+    -------
+    ois_curve, nss_curve, valuation_date, calendar, ql
+
+    Examples
+    --------
+    # use today (or nearest available ECB date)
+    ois, nss, val_date, cal, ql = asset_pricing()
+
+    # specific historical date (must be in cache or fetchable from ECB)
+    ois, nss, val_date, cal, ql = asset_pricing("2025-12-31")
+    """
     import QuantLib as ql
-    from quant_risk.config import PROCESSED_DIR
-    from quant_risk.curves.ois import OISCurve
-    from quant_risk.curves.nss import NSSCurve
+    from datetime import date as _date
+    from nb_utils.cache import DataCache
 
-    ois_curve = OISCurve.from_processed(str(PROCESSED_DIR))
-    nss_curve = NSSCurve.from_ecb(rating="AAA")
+    if date is None:
+        date = str(_date.today())
 
-    print(ois_curve.describe())
-    print(nss_curve.describe())
+    cache = DataCache()
+
+    if cache.has(date):
+        ois_curve, nss_curve = cache.load(date)
+        print(f"Loaded from cache  : {date}")
+    else:
+        from quant_risk.curves.ois import OISCurve
+        from quant_risk.curves.nss import NSSCurve
+
+        ois_curve = OISCurve.from_ecb()
+        nss_curve = NSSCurve.from_ecb(rating="AAA", date=date)
+
+        actual = ois_curve.valuation_date
+        cache.save(actual, ois_curve, nss_curve)
+
+        if actual != date:
+            print(f"Note: requested {date}, nearest ECB date is {actual}")
+        else:
+            print(f"Fetched and cached : {actual}")
 
     val_parts      = ois_curve.valuation_date.split("-")
     valuation_date = ql.Date(int(val_parts[2]), int(val_parts[1]), int(val_parts[0]))
     ql.Settings.instance().evaluationDate = valuation_date
     calendar       = ql.TARGET()
 
-    print(f"Valuation date : {valuation_date}")
-    print(f"Calendar       : TARGET")
-    print("asset pricing loaded")
-
+    cache.list_dates()
     return ois_curve, nss_curve, valuation_date, calendar, ql
 
 
@@ -65,5 +98,4 @@ def macro():
     store          = FREDStore(FRED_API_KEY)
     external_store = ExternalStore()
 
-    print("macro loaded")
     return fed_client, store, external_store
