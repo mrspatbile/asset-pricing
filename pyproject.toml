@@ -42,3 +42,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]
+
+# notebooks-only project
+# no Python packages to install, suppress setuptools auto-discovery
+[tool.setuptools]
+packages = ["nb_utils"] 
